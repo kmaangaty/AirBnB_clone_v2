@@ -24,6 +24,11 @@ class FileStorage:
 
     __file_path = "file.json"
     __objects = {}
+    import os
+    if not os.path.exists(__file_path):
+        # Create the file if it doesn't exist
+        with open(__file_path, 'w') as f:
+            f.write('{}')
 
     def all(self, cls=None):
         """all"""

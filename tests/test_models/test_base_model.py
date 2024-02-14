@@ -78,7 +78,7 @@ class TestBaseModel(unittest.TestCase):
         self.assertEqual(inst.name, "Holberton")
         self.assertEqual(inst.number, 89)
 
-    def tda(self):
+    def test_datetime_attributes(self):
         """test_datetime_attributes."""
         tic = datetime.now()
         inst1 = BaseModel()

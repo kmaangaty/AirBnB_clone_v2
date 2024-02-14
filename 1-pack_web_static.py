@@ -9,6 +9,7 @@ from os.path import isdir
     of the web_static folder in the AirBnB Clone repository.
 """
 
+
 def do_pack():
     """
     Generates a .tgz archive from the contents of the web_static folder.

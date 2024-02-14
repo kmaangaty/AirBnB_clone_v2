@@ -18,6 +18,7 @@ all_cls = {
     "Place": Place, "Review": Review
 }
 
+
 class FileStorage:
     """FileStorage"""
 
@@ -55,7 +56,7 @@ class FileStorage:
                 jo = json.load(f)
             for key in jo:
                 self.__objects[key] = all_cls[jo[key]["__class__"]](**jo[key])
-        except:
+        except ValueError:
             pass
 
     def delete(self, obj=None):

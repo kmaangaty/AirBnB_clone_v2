@@ -1,66 +1,20 @@
-#!/usr/bin/env bash
-# Install Nginx if not already installed
-if ! command -v nginx &> /dev/null
-then
-    sudo apt-get update
-    sudo apt-get -y install nginx
-fi
-
-# Create necessary directories
-sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
+sudo mkdir -p /data/web_static/releases/test/
+sudo mkdir -p /data/web_static/shared/
 
 # Create a fake HTML file
-echo "<html>
-  <head>
-  </head>
-  <body>
-    Holberton School
-  </body>
-</html>" | sudo tee /data/web_static/releases/test/index.html > /dev/null
+echo -e "<html>\n  <head>\n  </head>\n  <body>\n    Holberton School\n  </body>\n</html>" | sudo tee /data/web_static/releases/test/index.html
 
-# Create or update symbolic link
+# Create a symbolic link
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 
-# Give ownership of /data/ folder to the ubuntu user and group recursively
+# Give ownership of the /data/ folder to the ubuntu user and group
 sudo chown -R ubuntu:ubuntu /data/
 
 # Update Nginx configuration
-nginx_config="server {
-    listen 80;
-    server_name _;
-
-    location /hbnb_static/ {
-        alias /data/web_static/current/;
-        index index.html;
-    }
-
-    location / {
-        add_header X-Served-By \$hostname;
-        proxy_set_header Host \$host;
-        proxy_pass http://localhost:5000;
-    }
-
-    error_page 404 /404.html;
-    location /404 {
-        internal;
-        root /usr/share/nginx/html;
-    }
-
-    error_page 500 502 503 504 /50x.html;
-    location /50x {
-        internal;
-        root /usr/share/nginx/html;
-    }
-}
-"
-
-# Backup the original default configuration
-sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-
-# Apply the new configuration
-echo "$nginx_config" | sudo tee /etc/nginx/sites-available/default > /dev/null
+sudo sed -i "/^\tlocation \/ {$/a \\\t\tlocation /hbnb_static/ {\n\t\t\talias /data/web_static/current/;\n\t\t}" /etc/nginx/sites-available/default
 
 # Restart Nginx
 sudo service nginx restart
 
+# Exit successfully
 exit 0

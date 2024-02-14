@@ -2,84 +2,86 @@
 """ console """
 
 import cmd
-from datetime import datetime
+import shlex  # for splitting the line along spaces except in double quotes
+
 import models
 from models.amenity import Amenity
-from models.base_model import BaseModel
 from models.city import City
 from models.place import Place
 from models.review import Review
 from models.state import State
 from models.user import User
-import shlex  # for splitting the line along spaces except in double quotes
 
-classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
+all_cls = {
+    "State": State, "User": User,
+    "Amenity": Amenity, "City": City,
+    "Place": Place, "Review": Review
+}
 
 
 class HBNBCommand(cmd.Cmd):
     """ HBNH console """
-    prompt = '(hbnb) '
+    pmt = '(hbnb) '
 
     def do_EOF(self, arg):
-        """Exits console"""
+        """do_EOF"""
         return True
 
     def emptyline(self):
-        """ overwriting the emptyline method """
+        """ emptyline """
         return False
 
     def do_quit(self, arg):
-        """Quit command to exit the program"""
+        """do_quit"""
         return True
 
     def _key_value_parser(self, args):
-        """creates a dictionary from a list of strings"""
-        new_dict = {}
-        for arg in args:
-            if "=" in arg:
-                kvp = arg.split('=', 1)
-                key = kvp[0]
-                value = kvp[1]
-                if value[0] == value[-1] == '"':
-                    value = shlex.split(value)[0].replace('_', ' ')
+        """_key_value_parser"""
+        nd = {}
+        for a in args:
+            if "=" in a:
+                vp = a.split('=', 1)
+                k = vp[0]
+                vl = vp[1]
+                if vl[0] == vl[-1] == '"':
+                    vl = shlex.split(vl)[0].replace('_', ' ')
                 else:
                     try:
-                        value = int(value)
+                        vl = int(vl)
                     except ValueError:
                         try:
-                            value = float(value)
+                            vl = float(vl)
                         except ValueError:
                             continue
-                new_dict[key] = value
-        return new_dict
+                nd[k] = vl
+        return nd
 
     def do_create(self, arg):
-        """Creates a new instance of a class"""
-        args = arg.split()
-        if len(args) == 0:
+        """do_create"""
+        ags = arg.split()
+        if len(ags) == 0:
             print("** class name missing **")
             return False
-        if args[0] in classes:
-            new_dict = self._key_value_parser(args[1:])
-            instance = classes[args[0]](**new_dict)
+        if ags[0] in all_cls:
+            nd = self._key_value_parser(ags[1:])
+            ins = all_cls[ags[0]](**nd)
         else:
             print("** class doesn't exist **")
             return False
-        print(instance.id)
-        instance.save()
+        print(ins.id)
+        ins.save()
 
     def do_show(self, arg):
-        """Prints an instance as a string based on the class and id"""
-        args = shlex.split(arg)
-        if len(args) == 0:
+        """do_show"""
+        ags = shlex.split(arg)
+        if len(ags) == 0:
             print("** class name missing **")
             return False
-        if args[0] in classes:
-            if len(args) > 1:
-                key = args[0] + "." + args[1]
-                if key in models.storage.all():
-                    print(models.storage.all()[key])
+        if ags[0] in all_cls:
+            if len(ags) > 1:
+                k = ags[0] + "." + ags[1]
+                if k in models.storage.all():
+                    print(models.storage.all()[k])
                 else:
                     print("** no instance found **")
             else:
@@ -88,15 +90,15 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
 
     def do_destroy(self, arg):
-        """Deletes an instance based on the class and id"""
-        args = shlex.split(arg)
-        if len(args) == 0:
+        """do_destroy"""
+        ags = shlex.split(arg)
+        if len(ags) == 0:
             print("** class name missing **")
-        elif args[0] in classes:
-            if len(args) > 1:
-                key = args[0] + "." + args[1]
-                if key in models.storage.all():
-                    models.storage.all().pop(key)
+        elif ags[0] in all_cls:
+            if len(ags) > 1:
+                k = ags[0] + "." + ags[1]
+                if k in models.storage.all():
+                    models.storage.all().pop(k)
                     models.storage.save()
                 else:
                     print("** no instance found **")
@@ -106,48 +108,55 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
 
     def do_all(self, arg):
-        """Prints string representations of instances"""
-        args = shlex.split(arg)
-        obj_list = []
-        if len(args) == 0:
-            obj_dict = models.storage.all()
-        elif args[0] in classes:
-            obj_dict = models.storage.all(classes[args[0]])
+        """do_all"""
+        ags = shlex.split(arg)
+        ojl = []
+        if len(ags) == 0:
+            ojd = models.storage.all()
+        elif ags[0] in all_cls:
+            ojd = models.storage.all(all_cls[ags[0]])
         else:
             print("** class doesn't exist **")
             return False
-        for key in obj_dict:
-            obj_list.append(str(obj_dict[key]))
+        for k in ojd:
+            ojl.append(str(ojd[k]))
         print("[", end="")
-        print(", ".join(obj_list), end="")
+        print(", ".join(ojl), end="")
         print("]")
 
     def do_update(self, arg):
-        """Update an instance based on the class name, id, attribute & value"""
-        args = shlex.split(arg)
-        integers = ["number_rooms", "number_bathrooms", "max_guest",
-                    "price_by_night"]
-        floats = ["latitude", "longitude"]
-        if len(args) == 0:
+        """do_update"""
+        ags = shlex.split(arg)
+        igs = [
+            "number_rooms",
+            "number_bathrooms",
+            "max_guest",
+            "price_by_night"
+        ]
+        fls = [
+            "latitude",
+            "longitude"
+        ]
+        if len(ags) == 0:
             print("** class name missing **")
-        elif args[0] in classes:
-            if len(args) > 1:
-                k = args[0] + "." + args[1]
+        elif ags[0] in all_cls:
+            if len(ags) > 1:
+                k = ags[0] + "." + ags[1]
                 if k in models.storage.all():
-                    if len(args) > 2:
-                        if len(args) > 3:
-                            if args[0] == "Place":
-                                if args[2] in integers:
+                    if len(ags) > 2:
+                        if len(ags) > 3:
+                            if ags[0] == "Place":
+                                if ags[2] in igs:
                                     try:
-                                        args[3] = int(args[3])
+                                        ags[3] = int(ags[3])
                                     except ValueError:
-                                        args[3] = 0
-                                elif args[2] in floats:
+                                        ags[3] = 0
+                                elif ags[2] in fls:
                                     try:
-                                        args[3] = float(args[3])
+                                        ags[3] = float(ags[3])
                                     except ValueError:
-                                        args[3] = 0.0
-                            setattr(models.storage.all()[k], args[2], args[3])
+                                        ags[3] = 0.0
+                            setattr(models.storage.all()[k], ags[2], ags[3])
                             models.storage.all()[k].save()
                         else:
                             print("** value missing **")

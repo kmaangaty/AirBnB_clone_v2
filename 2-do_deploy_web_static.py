@@ -19,7 +19,7 @@ def do_deploy(archive_path):
         run('tar -xzf /tmp/{} -C {}/{}'.format(file_n, path, no_ext))
         run('rm /tmp/{}'.format(file_n))
 
-        # Move files directly instead of entire web_static directory
+        # Move individual files instead of the entire web_static directory
         run('mv {0}/{1}/web_static/* {0}/{1}/'.format(path, no_ext))
         run('rm -rf {}/web_static'.format(path + no_ext))
 
